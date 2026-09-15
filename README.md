@@ -1,152 +1,175 @@
 # RuangDiskusi - Aplikasi Forum Diskusi
 
-> Proyek Submission Kelas Dicoding: **"Menjadi React Web Developer Expert"** / Pengelolaan State Kompleks dengan Redux.
+> Proyek Submission Kelas Dicoding: **"Menjadi React Web Developer Expert"**  
+> Penerapan Automation Testing (Unit, Integration, E2E), React Ecosystem (Storybook), dan CI/CD (GitHub Actions & Vercel).
 
-**RuangDiskusi** adalah aplikasi web forum diskusi modern, interaktif, dan minimalis yang dibangun menggunakan **React**, **Redux Toolkit**, dan **Dicoding Forum API v1** (`https://forum-api.dicoding.dev/v1/`). Aplikasi ini dirancang dengan gaya **Simple Modern Minimalist**, kontras warna yang nyaman dibaca, serta performa responsif di berbagai perangkat.
+**RuangDiskusi** adalah aplikasi web forum diskusi modern, interaktif, dan minimalis yang dibangun menggunakan **React**, **Redux Toolkit**, dan **Dicoding Forum API v1** (`https://forum-api.dicoding.dev/v1/`). Aplikasi ini dilengkapi dengan pengujian otomatis menyeluruh, dokumentasi komponen via Storybook, pipeline CI/CD otomatis, serta desain **Simple Modern Minimalist** yang responsif dan nyaman dibaca.
 
 ---
 
 ## 🚀 Fitur Utama & Kriteria Penilaian
 
-### 1. Kriteria Utama (Wajib)
-- **Fungsionalitas Autentikasi**:
-  - Pendaftaran akun baru (`/register`) dengan validasi input client-side.
-  - Masuk ke akun (`/login`) dengan persistensi token di `localStorage` dan Redux state.
-  - Preload sesi login (`isPreload`) untuk menjaga status user saat halaman dimuat ulang.
-  - Logout akun yang membersihkan token dan state user.
-- **Daftar Thread (`/`)**:
-  - Menampilkan judul thread, cuplikan isi, waktu relatif (`postedAt`), jumlah komentar, serta nama dan avatar pembuat thread.
-- **Detail Thread & Komentar (`/threads/:id`)**:
-  - Menampilkan judul, isi lengkap (HTML-safe parsing), waktu pembuatan, profil pembuat (nama dan avatar).
-  - Menampilkan daftar komentar lengkap dengan informasi nama, avatar, waktu, dan konten tanggapan.
-- **Buat Thread Baru (`/new`)**:
-  - Diproteksi route guard (`ProtectedRoute`) khusus pengguna yang telah login.
-  - Form input judul, kategori (opsional), dan isi diskusi.
-- **Buat Komentar**:
-  - Form komentar interaktif pada detail thread untuk pengguna terotentikasi, disertai ajakan login jika belum terautentikasi.
-- **Loading Indicator**:
-  - Indikator bar loading dinamis di bagian paling atas layar saat data sedang dimuat dari API.
+### 1. Automation Testing (`npm test` & `npm run e2e`)
+- **Unit Testing Reducers (> 3 pengujian)**:
+  - `src/states/authUser/reducer.test.js`: Initial state, set auth user, unset auth user.
+  - `src/states/threads/reducer.test.js`: Initial state, receive threads, add thread, toggle upvote, toggle downvote, toggle neutral vote.
+  - `src/states/threadDetail/reducer.test.js`: Initial state, receive detail, clear detail, add comment, toggle upvote thread detail, toggle upvote comment.
+  - `src/states/isPreload/reducer.test.js`: Initial state, set isPreload.
+  - `src/states/filterCategory/reducer.test.js`: Initial state, set filter, clear filter.
+- **Integration Testing Thunk Functions (> 3 pengujian)**:
+  - `src/states/authUser/action.test.js`: Login sukses/gagal, register sukses/gagal.
+  - `src/states/shared/action.test.js`: Pengambilan threads dan users bersamaan.
+  - `src/states/threads/action.test.js`: Pembuatan thread baru sukses/gagal.
+  - `src/states/threadDetail/action.test.js`: Pengambilan detail thread dan pengiriman komentar.
+  - `src/states/leaderboards/action.test.js`: Pengambilan daftar klasemen pengguna.
+- **Component Testing React (> 3 pengujian)**:
+  - `src/components/VoteButtons.test.jsx`: Menampilkan skor kalkulasi, memicu handler vote, dan kelas highlight aktif.
+  - `src/components/CommentInput.test.jsx`: Menangani input textarea, tombol disabled saat kosong, dan form submit.
+  - `src/components/CategoryFilter.test.jsx`: Menampilkan seluruh kategori dan memicu filter saat diklik.
+  - `src/components/LeaderboardItem.test.jsx`: Menampilkan data peringkat pengguna dan styling badge medali.
+- **End-to-End Testing (Cypress)**:
+  - `cypress/e2e/login.cy.js`: Menguji alur tampilan halaman login, validasi alert saat kredensial salah, dan keberhasilan login hingga navigasi beranda.
+- **Skenario Pengujian**: Setiap berkas pengujian diawali dengan komentar skenario pengujian yang jelas dan deskriptif.
 
-### 2. Bugs Highlighting & Standar Kode
-- **ESLint**: Menggunakan konfigurasi berkas `eslint.config.js` berbasis standard ECMAScript & React rules.
-- **Zero Errors**: Lulus verifikasi `npm run lint` dengan **0 error dan 0 warning**.
-- **React Strict Mode**: Diterapkan pada `main.jsx` (`<StrictMode>`).
+### 2. CI/CD & Deployment
+- **Continuous Integration (GitHub Actions)**:
+  - File workflow: `.github/workflows/ci.yml`.
+  - Workflow Name: `Continuous Integration`
+  - Job Name: `automation-test-job` (menjalankan checkout, setup node, linter `npm run lint`, unit & component tests `npm test`, production build `npm run build`, dan Cypress E2E `npm run e2e`).
+- **Continuous Deployment (Vercel)**:
+  - Konfigurasi `vercel.json` dengan rewrite SPA untuk rute dinamis (`/threads/:id`, `/login`, dll.).
+- **Branch Protection & Screenshot Bukti**:
+  - Folder `screenshots/` menyimpan berkas:
+    - `1_ci_check_error.png`
+    - `2_ci_check_pass.png`
+    - `3_branch_protection.png`
 
-### 3. Arsitektur Redux & Modularitas
-- **State Terpusat**: Seluruh data yang bersumber dari API disimpan pada Redux Store (`authUser`, `isPreload`, `users`, `threads`, `threadDetail`, `leaderboards`, `filterCategory`, `loading`).
-- **Tanpa API Call di Lifecycle Komponen**: Seluruh pemanggilan REST API dilakukan melalui **Redux Thunk** (`async action creator`). Komponen React murni fokus pada presentasi antarmuka.
-- **Pemisahan Folder UI & State**: Folder terstruktur rapi antara `src/states/`, `src/components/`, `src/pages/`, `src/utils/`, dan `src/styles/`.
-- **Modular & Reusable**: Komponen modular seperti `ThreadItem`, `VoteButtons`, `CommentList`, `CategoryFilter`, dan `LeaderboardItem`.
+### 3. Pemanfaatan React Ecosystem: Storybook
+- Menggunakan **Storybook** dari daftar resmi [awesome-react-ecosystem#react-tools](https://github.com/dicodingacademy/awesome-react-ecosystem#react-tools).
+- Memiliki 3 berkas stories komponen modular:
+  1. `src/components/VoteButtons.stories.jsx` (Neutral, Upvoted, Downvoted, HighScore)
+  2. `src/components/CategoryFilter.stories.jsx` (Default, ActiveCategory, EmptyCategories)
+  3. `src/components/LeaderboardItem.stories.jsx` (Rank1Gold, Rank2Silver, Rank3Bronze, RegularRank)
 
----
-
-## 🌟 Fitur Unggulan (Saran Bintang 5)
-
-1. **Saran 1: Fitur Upvote & Downvote (Thread & Komentar)**
-   - Tombol vote interaktif pada setiap thread dan komentar.
-   - Indikasi warna aktif: Biru (`active-up`) untuk upvote, Merah (`active-down`) untuk downvote, dan Netral.
-   - **Optimistic UI Updates**: State antarmuka diperbarui secara instan sebelum API selesai, dan otomatis di-rollback jika terjadi kegagalan jaringan.
-   - Menampilkan kalkulasi total skor vote secara akurat.
-
-2. **Saran 2: Halaman Klasemen / Leaderboard (`/leaderboards`)**
-   - Menampilkan peringkat pengguna dengan poin kontribusi tertinggi.
-   - Dilengkapi badge medali (Juara 1: Emas, Juara 2: Perak, Juara 3: Perunggu), avatar, nama, email, dan perolehan skor.
-
-3. **Saran 3: Filter Thread Berdasarkan Kategori**
-   - Chip filter kategori dinamis yang diekstrak langsung dari kumpulan thread.
-   - Penyaringan murni di sisi front-end melalui manipulasi state Redux `filterCategory`.
-   - Mengklik badge kategori pada kartu thread akan langsung memfilter topik tersebut.
+### 4. Mempertahankan Kriteria Submission Sebelumnya
+- **Autentikasi Pengguna**: Register (`/register`), Login (`/login`), Session preloading (`isPreload`).
+- **Thread & Komentar**: Daftar thread dengan waktu relatif, detail thread dan tanggapan, serta pembuatan thread baru (`/new`).
+- **Bugs Highlighting**: Menggunakan **Dicoding Academy JavaScript Style Guide** (`eslint-config-dicodingacademy`) dengan **0 error dan 0 warning** pada `npm run lint`.
+- **Fitur Saran Bintang 5**:
+  - Votes dengan **Optimistic UI Updates** pada thread dan komentar.
+  - Halaman **Leaderboard / Klasemen** pengguna aktif (`/leaderboards`).
+  - **Filter kategori** murni di sisi front-end via Redux.
 
 ---
 
 ## 🛠️ Teknologi yang Digunakan
 
-- **Frontend**: [React](https://react.dev/) (v19)
-- **Bundler & Dev Server**: [Vite](https://vite.dev/)
-- **State Management**: [Redux Toolkit](https://redux-toolkit.js.org/) & [React-Redux](https://react-redux.js.org/)
-- **Routing**: [React Router DOM](https://reactrouter.com/) (v7)
-- **Icons**: [React Icons](https://react-icons.github.io/react-icons/) (Feather Icons)
-- **Styling**: Pure Vanilla CSS (CSS Variables, Flexbox, Grid, Simple Modern Minimalist Theme)
-- **Linter**: ESLint (v9) Flat Config
+- **Core**: React 19, Vite
+- **State Management**: Redux Toolkit & React-Redux
+- **Routing**: React Router DOM v7
+- **Icons**: React Icons (Feather Icons)
+- **Styling**: Pure Vanilla CSS (CSS Variables, Flexbox, Grid, Minimalist Theme)
+- **Linter**: ESLint v9 (`eslint-config-dicodingacademy`)
+- **Unit & Component Testing**: Vitest, React Testing Library, JSDOM, Jest-DOM
+- **End-to-End Testing**: Cypress, Start-Server-And-Test
+- **Component Stories & Explorer**: Storybook v8 (@storybook/react-vite)
+- **CI/CD**: GitHub Actions, Vercel
 
 ---
 
-## 📁 Struktur Proyek
+## 📁 Struktur Direktori
 
 ```text
 forum-diskusi/
-├── index.html              # Template HTML dengan SEO tags & font Plus Jakarta Sans
-├── eslint.config.js        # Konfigurasi ESLint
-├── vite.config.js          # Konfigurasi Vite
-├── package.json            # Daftar dependensi & scripts
-├── public/                 # Asset statis publik
-└── src/
-    ├── components/         # Komponen UI modular
-    │   ├── CategoryFilter.jsx
-    │   ├── CommentInput.jsx
-    │   ├── CommentItem.jsx
-    │   ├── CommentList.jsx
-    │   ├── LeaderboardItem.jsx
-    │   ├── LoadingBar.jsx
-    │   ├── Navbar.jsx
-    │   ├── ProtectedRoute.jsx
-    │   ├── ThreadItem.jsx
-    │   ├── ThreadList.jsx
-    │   └── VoteButtons.jsx
-    ├── pages/              # Komponen halaman (views)
-    │   ├── DetailPage.jsx
-    │   ├── HomePage.jsx
-    │   ├── LeaderboardPage.jsx
-    │   ├── LoginPage.jsx
-    │   ├── NewThreadPage.jsx
-    │   ├── NotFoundPage.jsx
-    │   └── RegisterPage.jsx
-    ├── states/             # Redux Store, Actions, Reducers, & Thunks
-    │   ├── authUser/
-    │   ├── filterCategory/
-    │   ├── isPreload/
-    │   ├── leaderboards/
-    │   ├── loading/
-    │   ├── shared/
-    │   ├── threadDetail/
-    │   ├── threads/
-    │   ├── users/
-    │   └── index.js
-    ├── styles/             # Penggayaan Vanilla CSS terstruktur
-    │   └── index.css
-    ├── utils/              # Helper API Dicoding & utilitas format waktu
-    │   ├── api.js
-    │   └── index.js
-    ├── App.jsx             # Root layout & routing
-    └── main.jsx            # Entry point aplikasi (StrictMode & Provider)
+├── .github/workflows/      # GitHub Actions CI Workflow
+│   └── ci.yml
+├── .storybook/             # Konfigurasi Storybook
+│   ├── main.js
+│   └── preview.jsx
+├── cypress/                # Cypress End-to-End Tests
+│   ├── e2e/
+│   │   └── login.cy.js
+│   └── support/
+│       ├── commands.js
+│       └── e2e.js
+├── screenshots/            # Bukti screenshot CI check & branch protection
+│   ├── 1_ci_check_error.png
+│   ├── 2_ci_check_pass.png
+│   ├── 3_branch_protection.png
+│   └── README.md
+├── src/
+│   ├── components/         # Komponen UI modular, unit tests, & stories
+│   │   ├── CategoryFilter.jsx
+│   │   ├── CategoryFilter.stories.jsx
+│   │   ├── CategoryFilter.test.jsx
+│   │   ├── CommentInput.jsx
+│   │   ├── CommentInput.test.jsx
+│   │   ├── CommentItem.jsx
+│   │   ├── CommentList.jsx
+│   │   ├── LeaderboardItem.jsx
+│   │   ├── LeaderboardItem.stories.jsx
+│   │   ├── LeaderboardItem.test.jsx
+│   │   ├── LoadingBar.jsx
+│   │   ├── Navbar.jsx
+│   │   ├── ProtectedRoute.jsx
+│   │   ├── ThreadItem.jsx
+│   │   ├── ThreadList.jsx
+│   │   ├── VoteButtons.jsx
+│   │   ├── VoteButtons.stories.jsx
+│   │   └── VoteButtons.test.jsx
+│   ├── pages/              # Komponen halaman views
+│   ├── states/             # Redux Store, Actions, Reducers, & Tests
+│   │   ├── authUser/ (reducer, action, & tests)
+│   │   ├── filterCategory/ (reducer, action, & test)
+│   │   ├── isPreload/ (reducer, action, & test)
+│   │   ├── leaderboards/ (reducer, action, & test)
+│   │   ├── loading/
+│   │   ├── shared/ (action & test)
+│   │   ├── threadDetail/ (reducer, action, & tests)
+│   │   └── threads/ (reducer, action, & tests)
+│   ├── styles/             # Penggayaan Vanilla CSS
+│   ├── utils/              # API Client & Helpers
+│   ├── App.jsx
+│   ├── main.jsx
+│   └── setupTests.js       # Setup vitest matchers
+├── cypress.config.js
+├── eslint.config.js
+├── package.json
+├── vercel.json             # Konfigurasi deploy Vercel
+└── vite.config.js
 ```
 
 ---
 
-## 💻 Panduan Instalasi & Menjalankan Aplikasi
+## 💻 Panduan Menjalankan Script
 
-### 1. Prasyarat
-- Pastikan telah menginstal [Node.js](https://nodejs.org/) (versi LTS yang direkomendasikan).
-
-### 2. Clone Repositori & Instal Dependensi
+### 1. Menjalankan Seluruh Unit & Component Tests
 ```bash
-git clone https://github.com/ZeroCG01/forum-diskusi.git
-cd forum-diskusi
-npm install
+npm test
 ```
 
-### 3. Menjalankan Development Server
+### 2. Menjalankan End-to-End Tests (Cypress)
 ```bash
-npm run dev
+npm run e2e
 ```
-Buka browser dan akses alamat `http://localhost:5173/`.
 
-### 4. Menjalankan Pemeriksaan ESLint
+### 3. Menjalankan Storybook
+```bash
+npm run storybook
+```
+Buka browser pada alamat `http://localhost:6006/` untuk melihat galeri komponen interaktif.
+
+### 4. Menjalankan Linter (ESLint)
 ```bash
 npm run lint
 ```
 
-### 5. Membangun Bundle Produksi
+### 5. Menjalankan Development Server
+```bash
+npm run dev
+```
+
+### 6. Membangun Bundle Produksi
 ```bash
 npm run build
 ```
@@ -154,4 +177,4 @@ npm run build
 ---
 
 ## 📄 Lisensi
-Proyek ini dibuat untuk keperluan pembelajaran dan submission di **Dicoding Indonesia**. Bebas digunakan untuk referensi studi.
+Proyek ini dibuat untuk keperluan submission kelas **Menjadi React Web Developer Expert** di **Dicoding Indonesia**.
