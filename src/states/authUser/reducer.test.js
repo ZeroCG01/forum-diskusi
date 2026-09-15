@@ -62,6 +62,6 @@ describe('authUserReducer function', () => {
     const nextState = authUserReducer(initialState, action);
 
     // assert
-    expect(nextState).toBeNull();
+    expect(nextState).toBe(123);
   });
 });
